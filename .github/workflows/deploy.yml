@@ -8,8 +8,12 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
-    labels: [minikube-runner]
+    runs-on:
+      labels:
+        - self-hosted
+        - Linux
+        - X64
+        - minikube-runner
 
     steps:
       - name: Checkout code
@@ -21,11 +25,11 @@ jobs:
           export KUBECONFIG=$PWD/kubeconfig
           kubectl get nodes
 
-      - name: Set new image
+      - name: Set new image tag
         run: |
           NEW_TAG="${{ github.sha }}"
           IMAGE="ghcr.io/${{ secrets.GHCR_USERNAME }}/fastapi-app:$NEW_TAG"
-          echo "Updating deployment to image: $IMAGE"
+          echo "Updating deployment to: $IMAGE"
           kubectl set image deployment/fastapi-deployment fastapi-container=$IMAGE
 
       - name: Apply Kubernetes manifests
@@ -34,5 +38,5 @@ jobs:
 
       - name: Rollout status
         run: |
-          kubectl rollout status deployment/fastapi-deployment --timeout=90s
+          kubectl rollout status deployment/fastapi-deployment --timeout=60s
 
