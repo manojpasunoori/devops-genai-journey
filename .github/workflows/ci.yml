@@ -1,7 +1,3 @@
-permissions:
-  contents: read
-  packages: write
-
 name: CI - Build and Push FastAPI Image
 
 on:
@@ -9,13 +5,13 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/${{ secrets.GHCR_USERNAME }}/fastapi-app
-
 permissions:
   contents: read
   packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/${{ secrets.GHCR_USERNAME }}/fastapi-app
 
 jobs:
   build-and-push:
