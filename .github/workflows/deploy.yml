@@ -1,29 +1,50 @@
-name: CD - Deploy to Minikube
+name: CD - Deploy to Minikube with Helm
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI - Build and Push FastAPI Image"]
+    types: [completed]
 
 jobs:
   deploy:
-    runs-on: self-hosted   # VERY IMPORTANT
+    # Only run if CI workflow succeeded
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ghcr.io/${{ secrets.GHCR_USERNAME }}/fastapi-app
+      NAMESPACE: default
+
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Deploy the same commit that CI built
+          ref: ${{ github.event.workflow_run.head_branch }}
 
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Show deployment context
+        run: |
+          echo "Deploying commit: ${{ github.event.workflow_run.head_sha }}"
+          kubectl config current-context || true
+          kubectl get nodes || true
 
-    - name: Set kubeconfig
-      run: |
-        mkdir -p ~/.kube
-        cp /home/manoj/.kube/config ~/.kube/config
-        chmod 600 ~/.kube/config
+      - name: Set IMAGE_TAG from CI commit
+        run: echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_ENV"
 
-    - name: Verify cluster connection
-      run: kubectl get nodes
+      - name: Deploy with Helm
+        run: |
+          echo "Using image: ${IMAGE_NAME}:${IMAGE_TAG}"
+          helm upgrade --install fastapi helm/fastapi-chart \
+            --namespace "${NAMESPACE}" \
+            --set image.repository="${IMAGE_NAME}" \
+            --set image.tag="${IMAGE_TAG}"
 
-    - name: Helm upgrade
-      run: |
-        cd fastapi-chart
-        helm upgrade fastapi . --install --wait
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/fastapi-fastapi \
+            --namespace "${NAMESPACE}" \
+            --timeout=180s
+          echo "Current pods:"
+          kubectl get pods -n "${NAMESPACE}"
 
