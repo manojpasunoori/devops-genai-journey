@@ -1,0 +1,38 @@
+name: CD - Deploy to Minikube
+
+on:
+  workflow_run:
+    workflows: ["CI - Build and Push FastAPI Image"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    labels: [minikube-runner]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 --decode > kubeconfig
+          export KUBECONFIG=$PWD/kubeconfig
+          kubectl get nodes
+
+      - name: Set new image
+        run: |
+          NEW_TAG="${{ github.sha }}"
+          IMAGE="ghcr.io/${{ secrets.GHCR_USERNAME }}/fastapi-app:$NEW_TAG"
+          echo "Updating deployment to image: $IMAGE"
+          kubectl set image deployment/fastapi-deployment fastapi-container=$IMAGE
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/
+
+      - name: Rollout status
+        run: |
+          kubectl rollout status deployment/fastapi-deployment --timeout=90s
+
