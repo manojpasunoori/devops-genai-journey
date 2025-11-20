@@ -1,0 +1,47 @@
+# ================================
+# FastAPI Application Settings
+# ================================
+
+replicaCount: 1   # Number of FastAPI pods
+
+image:
+  repository: ghcr.io/manojpasunoori/fastapi-app   # Container image registry
+  tag: "latest"                                     # Image tag (CI/CD will override)
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8000
+  nodePort: 30301
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+
+env: {}   # Additional environment variables can be added here
+
+
+# ================================
+# PostgreSQL Database Settings
+# ================================
+
+postgres:
+  enabled: true
+  image: "postgres:15"
+
+  host: postgres-service
+  port: 5432
+  user: manoj
+  db: devopsapp
+
+  # DO NOT store this in production values.yaml
+  # For local dev it's fine
+  password: secret123
+
+  persistence:
+    size: 1Gi
+
