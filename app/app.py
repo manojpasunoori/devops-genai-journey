@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-
+from prometheus_fastapi_instrumentator import Instrumentator
 from database import Base, engine, get_db
 from models import User
 
@@ -14,6 +14,9 @@ app = FastAPI()
 @app.get("/")
 def root():
     return {"msg": "FastAPI + PostgreSQL inside Kubernetes is working!"}
+
+# Enable Prometheus metrics
+Instrumentator().instrument(app).expose(app)
 
 @app.post("/users")
 def create_user(name: str, db: Session = Depends(get_db)):
