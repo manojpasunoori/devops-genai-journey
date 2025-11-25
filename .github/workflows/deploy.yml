@@ -32,6 +32,10 @@ jobs:
       - name: Set IMAGE_TAG from CI commit
         run: echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_ENV"
 
+      - name: Set Kubeconfig
+        run: |
+          export KUBECONFIG=$HOME/.kube/config
+          echo "KUBECONFIG=$HOME/.kube/config" >> $GITHUB_ENV
       - name: Deploy with Helm
         run: |
           echo "Using image: ${IMAGE_NAME}:${IMAGE_TAG}"

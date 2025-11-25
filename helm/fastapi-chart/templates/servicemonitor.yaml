@@ -1,0 +1,25 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: fastapi-servicemonitor
+  namespace: monitoring
+  labels:
+    App: fastapi
+    app.kubernetes.io/instance: fastapi
+    app.kubernetes.io/managed-by: Helm
+    meta.helm.sh/release-name: fastapi
+    meta.helm.sh/release-namespace: default
+spec:
+  selector:
+    matchLabels:
+      App: fastapi
+  namespaceSelector:
+    matchNames:
+      - default
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+{{- end }}
+

@@ -3,13 +3,14 @@ kind: Service
 metadata:
   name: fastapi-service
   labels:
-    app: fastapi
+    App: fastapi
 spec:
   type: {{ .Values.service.type }}
   selector:
-    app: fastapi
+    App: fastapi
   ports:
-    - port: {{ .Values.service.port }}
+    - name: http          # <---- IMPORTANT: port name for ServiceMonitor
+      port: {{ .Values.service.port }}
       targetPort: 8000
       protocol: TCP
 

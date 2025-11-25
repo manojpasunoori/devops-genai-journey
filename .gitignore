@@ -1,13 +1,26 @@
+cat <<EOF > .gitignore
+# Python
 __pycache__/
 *.pyc
-.env
-*.db
-*.sqlite
-.idea/
-.vscode/
-.DS_Store
 
-# Kubernetes
+# Kubernetes binaries / tools
+kubectl
+minikube-linux-amd64
+
+# Logs
 *.log
 
-minikube-linux-amd64
+# Helm build artifacts
+charts/
+*.tgz
+
+# K8s manifests generated manually
+k8s/fastapi-servicemonitor.yaml
+
+# Environment files
+.env
+
+# Backup files
+*~
+EOF
+
